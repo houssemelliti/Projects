@@ -1,6 +1,15 @@
 package com.gildedrose;
 
 class GildedRose {
+    public static final String AGED_BRIE = "Aged Brie";
+    public static final String BACKSTAGE_PASSES = "Backstage passes to a TAFKAL80ETC concert";
+    public static final String SULFURAS = "Sulfuras, Hand of Ragnaros";
+    public static final String CONJURED = "Conjured";
+    public static final int MAXIMUM_QUALITY = 50;
+    public static final int BACKSTAGE_PASS_THRESHOLD1 = 11;
+    public static final int BACKSTAGE_PASS_THRESHOLD2 = 6;
+
+
     Item[] items;
 
     public GildedRose(Item[] items) {
@@ -9,54 +18,84 @@ class GildedRose {
 
     public void updateQuality() {
         for (int i = 0; i < items.length; i++) {
-            if (!items[i].name.equals("Aged Brie")
-                    && !items[i].name.equals("Backstage passes to a TAFKAL80ETC concert")) {
-                if (items[i].quality > 0) {
-                    if (!items[i].name.equals("Sulfuras, Hand of Ragnaros")) {
-                        items[i].quality = items[i].quality - 1;
-                    }
-                }
+            Item item = items[i];
+            handleIfNormalItem(item);
+            handleIfAgedBrie(item);
+            handleIfBackstagePasses(item);
+            handleIfConjured(item);
+        }
+    }
+
+    private void handleIfConjured(Item item) {
+        if(isConjured(item)){
+            item.quality -= 2;
+            item.sellIn--;
+        }
+    }
+
+    private void handleIfBackstagePasses(Item item) {
+        if(isBackstagePasses(item)) {
+            item.sellIn--;
+            if (item.sellIn <= 0) {
+                item.quality = 0;
+            } else if (item.sellIn < BACKSTAGE_PASS_THRESHOLD2) {
+                item.quality = item.quality + 3;
+            } else if (item.sellIn < BACKSTAGE_PASS_THRESHOLD1) {
+                item.quality = item.quality + 2;
             } else {
-                if (items[i].quality < 50) {
-                    items[i].quality = items[i].quality + 1;
-
-                    if (items[i].name.equals("Backstage passes to a TAFKAL80ETC concert")) {
-                        if (items[i].sellIn < 11) {
-                            if (items[i].quality < 50) {
-                                items[i].quality = items[i].quality + 1;
-                            }
-                        }
-
-                        if (items[i].sellIn < 6) {
-                            if (items[i].quality < 50) {
-                                items[i].quality = items[i].quality + 1;
-                            }
-                        }
-                    }
-                }
+                item.quality++;
             }
-
-            if (!items[i].name.equals("Sulfuras, Hand of Ragnaros")) {
-                items[i].sellIn = items[i].sellIn - 1;
-            }
-
-            if (items[i].sellIn < 0) {
-                if (!items[i].name.equals("Aged Brie")) {
-                    if (!items[i].name.equals("Backstage passes to a TAFKAL80ETC concert")) {
-                        if (items[i].quality > 0) {
-                            if (!items[i].name.equals("Sulfuras, Hand of Ragnaros")) {
-                                items[i].quality = items[i].quality - 1;
-                            }
-                        }
-                    } else {
-                        items[i].quality = items[i].quality - items[i].quality;
-                    }
-                } else {
-                    if (items[i].quality < 50) {
-                        items[i].quality = items[i].quality + 1;
-                    }
-                }
+            if (item.quality > MAXIMUM_QUALITY) {
+                item.quality = MAXIMUM_QUALITY;
             }
         }
+    }
+
+    private void handleIfAgedBrie(Item item) {
+        if(isAgedBrie(item)) {
+            item.sellIn--;
+            if (item.sellIn <= 0) {
+                item.quality = item.quality + 2;
+            } else {
+                item.quality++;
+            }
+            if (item.quality > MAXIMUM_QUALITY) {
+                item.quality = MAXIMUM_QUALITY;
+            }
+        }
+    }
+
+    private void handleIfNormalItem(Item item) {
+        if(isNormalItem(item)) {
+            item.sellIn--;
+            if (item.sellIn <= 0) {
+                item.quality = item.quality - 2;
+            } else {
+                item.quality--;
+            }
+            if (item.quality < 0) {
+                item.quality = 0;
+            }
+        }
+    }
+
+    private boolean isNormalItem(Item item) {
+        return !(isBackstagePasses(item) || isSulfuras(item) || isAgedBrie(item) || isConjured(item));
+    }
+
+    private boolean isBackstagePasses(Item item) {
+        return item.name.equals(BACKSTAGE_PASSES);
+    }
+
+    private boolean isSulfuras(Item item) {
+        return item.name.equals(SULFURAS);
+    }
+
+    private boolean isAgedBrie(Item item) {
+        return item.name.equals(AGED_BRIE);
+    }
+
+    private boolean isConjured(Item item) {
+        return item.name.equals(CONJURED);
     }
 }
